@@ -16,6 +16,9 @@ from shutil import copyfile
 # The script
 curr_path = os.getcwd()
 
+# Include all faces
+include_all_faces = True
+
 import xml.etree.cElementTree as ET
 
 # settings
@@ -76,7 +79,12 @@ def readAndWrite(bbx_gttxtPath):
 
 
         img = np.zeros((80, 80))
+
+        face_idx = 0
+        img_idx = 0
+
         for line in f:
+
             inp = line.split(' ')
 
             # if line.find("--") != -1:
@@ -99,22 +107,26 @@ def readAndWrite(bbx_gttxtPath):
                 curr_et_object = newXMLPASCALfile(img.shape[0],img.shape[1],curr_path, curr_filename )
                 # print( curr_et_object  )
 
+                img_idx += 1
+                print('image {}: {}'.format(img_idx, curr_filename))
+
             else:
                 # print(img)
                 inp = [int(i) for i in inp[:-1]]
                 x1, y1, w, h, blur, expression, illumination, invalid, occlusion, pose = inp
                 n = max(w,h)
-                if invalid == 1 or blur > 0 or n < 50:
+                if not include_all_faces and (invalid == 1 or blur > 0 or n < 50):
                     continue
-                img2 = img[y1:y1+n, x1:x1+n]
-                img3 = cv2.resize(img2, (80, 80))
-                vec = hog.compute(img3)
+                # img2 = img[y1:y1+n, x1:x1+n]
+                # img3 = cv2.resize(img2, (80, 80))
+                # vec = hog.compute(img3)
                 # data.append(vec)
                 # label.append(1)
                 cnt += 1
+                face_idx += 1
 
                 fileNow = os.path.join(curr_path,curr_filename)
-                print("{}: {} {} {} {}".format(len(vec),x1, y1, w, h) + " " + fileNow)
+                # print("{}-{}: {} {} {} {}".format(face_idx, cnt, x1, y1, w, h) + " " + fileNow)
 
                 curr_et_object = appendXMLPASCAL(curr_et_object,x1, y1, w, h, fileNow )
 
